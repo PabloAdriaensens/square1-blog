@@ -25,17 +25,17 @@ class CandidateTestApiClient
     /**
      * @param string $endpoint
      * @param array $params
-     * @return array
+     * @return array|null
      * @throws JsonException
      */
-    public function getByParameters(string $endpoint, array $params): array
+    public function getByParameters(string $endpoint, array $params): ?array
     {
         try {
             $response = $this->client->get($endpoint, $params);
 
             return json_decode($response->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
         } catch (GuzzleException) {
-            return [];
+            return null;
         }
     }
 }

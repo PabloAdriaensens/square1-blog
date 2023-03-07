@@ -2,6 +2,7 @@
 
 namespace App\Application\Service;
 
+use Exception;
 use JsonException;
 
 class CandidateTestApi
@@ -12,9 +13,17 @@ class CandidateTestApi
      * @param array $params
      * @return array
      * @throws JsonException
+     * @throws Exception
      */
-    public function getByParameters(array $params): array
+    public function getByParameters(array $params): ?array
     {
-        return (new CandidateTestApiClient($this->baseUri))->getByParameters('/api.php', $params);
+        $client = new CandidateTestApiClient($this->baseUri);
+        $response = $client->getByParameters('/api.php', $params);
+
+        if (empty($response)) {
+            throw new Exception('La API no devolvió datos');
+        }
+
+        return $response;
     }
 }
