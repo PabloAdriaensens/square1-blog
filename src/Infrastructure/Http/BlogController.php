@@ -5,7 +5,7 @@ namespace App\Infrastructure\Http;
 use App\Application\Service\CandidateTestApi;
 use App\Application\Service\PostsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class BlogController extends AbstractController
@@ -20,24 +20,33 @@ class BlogController extends AbstractController
     }
 
     #[Route('/posts', name: 'posts', methods: ['GET'])]
-    public function getPosts(): JsonResponse
+    public function getPosts(): Response
     {
-        $response = $this->api->getByParameters(['_sort' => 'publishedAt', '_order' => 'asc']);
+        $response = $this->api->getByParameters([]);
         $posts = $response['articles'];
 
-        return $this->json(['data' => $posts]);
+        $orderedPosts = $this->postsService->sortByPublishedAtAsc($posts);
+
+        return $this->render('posts/index.html.twig', [
+            'posts' => $orderedPosts,
+        ]);
     }
 
-    #[Route('/posts/{id}', name: 'post', methods: ['GET'])]
-    public function getPost(int $id): JsonResponse
+
+    #[Route('/posts/{id}', name: 'post_show', methods: ['GET'])]
+    public function getPost(int $id): Response
     {
-        $response = $this->api->getByParameters(['_sort' => 'publishedAt', '_order' => 'asc']);
+        $response = $this->api->getByParameters([]);
         $post = $this->postsService->getSpecificPost($response['articles'], $id);
 
         if (!$post) {
-            return $this->json(['message' => 'Post not found'], 404);
+            return $this->render('posts/404.html.twig', [
+                'post' => $id,
+            ]);
         }
 
-        return $this->json(['data' => $post]);
+        return $this->render('posts/show.html.twig', [
+            'post' => $post,
+        ]);
     }
 }

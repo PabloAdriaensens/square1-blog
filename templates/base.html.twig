@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Square1 challenge{% endblock %}</title>
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text></svg>">
+    {% block stylesheets %}
+        <link rel="stylesheet" href="{{ asset('build/app.css') }}">
+    {% endblock %}
+    {% block javascripts %}
+        {{ encore_entry_script_tags('app') }}
+    {% endblock %}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.3.5/dist/alpine.min.js" defer></script>
+</head>
+<body class="flex flex-col h-screen justify-between">
+{% block header %}
+    <header class="sticky top-0 z-50">
+        <nav class="bg-white border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
+            <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
+                <a href="{{ path('posts') }}" class="flex items-center">
+                    <span class="self-center text-4xl font-bold whitespace-nowrap dark:text-white">Posts</span>
+                </a>
+            </div>
+        </nav>
+    </header>
+{% endblock %}
+{% block body %}
+{% endblock %}
+
+{% block footer %}
+    <footer class="p-4 bg-white mt-10 shadow md:items-center md:justify-between md:p-6 dark:bg-gray-800">
+        <span class="block text-sm text-gray-500 sm:text-center dark:text-gray-400">© 2023 Pablo Adriaensens™. All Rights Reserved.</span>
+    </footer>
+{% endblock %}
+
+</body>
+</html>

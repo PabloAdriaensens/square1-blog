@@ -19,4 +19,17 @@ class PostsService
 
         return [];
     }
+
+    /**
+     * @param array $posts
+     * @return array
+     */
+    public function sortByPublishedAtAsc(array $posts): array
+    {
+        usort($posts, static function ($a, $b) {
+            return strcmp($a['publishedAt'], $b['publishedAt']);
+        });
+
+        return $posts;
+    }
 }
