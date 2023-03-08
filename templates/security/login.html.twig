@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Log in!{% endblock %}
+
+{% block body %}
+    <form method="post">
+        {% if error %}
+            <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+        {% endif %}
+
+        {% if app.user %}
+            <div class="mb-3">
+                You are logged in as {{ app.user.email }}, <a href="{{ path('app_logout') }}">Logout</a>
+            </div>
+        {% endif %}
+
+        <div class="w-4/5 m-auto text-center">
+            <div class="py-12 border-b border-gray-200">
+                <h1 class="text-6xl pt-12 pb-8">Login</h1>
+                <div class="mt-10 mx-auto w-1/5">
+                    <label for="inputEmail" class="sr-only">Email</label>
+                    <input type="email" value="{{ last_username }}" name="email" id="inputEmail"
+                           class="bg-transparent block w-full border-b-2 h-20 text-2xl outline-none" placeholder="Email"
+                           autocomplete="email" required autofocus>
+                </div>
+                <div class="mt-10 mx-auto w-1/5">
+                    <label for="inputPassword" class="sr-only">Password</label>
+                    <input type="password" name="password" id="inputPassword"
+                           class="bg-transparent block w-full border-b-2 h-20 text-2xl outline-none"
+                           autocomplete="current-password" placeholder="Password" required>
+                </div>
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                <div class="mt-10 mx-auto w-1/5">
+                    <button class="uppercase mt-10 text-white bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-sky-300 dark:focus:ring-sky-800 shadow-lg shadow-sky-500/50 dark:shadow-lg dark:shadow-sky-800/80 font-medium rounded-lg text-3xl px-24 py-2.5 text-center mr-2 mb-2"
+                            type="submit">Sign in
+                    </button>
+                </div>
+                <div class="mt-10 mx-auto w-1/5">
+                    <h1 class="text-sm pt-10 pb-2">Are you new?</h1>
+                    <a href="{{ path('app_register') }}"
+                       class="uppercase text-white bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-sky-300 dark:focus:ring-sky-800 shadow-lg shadow-sky-500/50 dark:shadow-lg dark:shadow-sky-800/80 font-medium rounded-lg text-sm px-6 py-2.5 text-center mr-2 mb-2"
+                       type="submit">Create your account</a>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}
