@@ -5,6 +5,7 @@ namespace App\Application\Service;
 use App\Domain\Entity\Post;
 use App\Domain\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use JsonException;
 
 class PostsService
@@ -20,80 +21,94 @@ class PostsService
 
     /**
      * @param array $posts
-     * @param $id
-     * @return array|null
+     * @param string $order
+     * @return array
+     * @throws Exception
      */
-    public function getSpecificPost(array $posts, $id): ?array
+    private function sortByPublishedAt(array $posts, string $order): array
     {
-        foreach ($posts as $post) {
-            if ($post['id'] === $id) {
-                return $post;
-            }
+        if ($order !== 'asc' && $order !== 'desc') {
+            throw new Exception('Invalid sort order: '.$order);
         }
 
-        return null;
-    }
+        usort($posts, static function($a, $b) use ($order) {
+            $dateA = new \DateTime($a['publishedAt']);
+            $dateB = new \DateTime($b['publishedAt']);
+            if ($order === 'asc') {
+                return $dateA <=> $dateB;
+            }
 
-    /**
-     * @param array $posts
-     * @return array
-     */
-    public function sortByPublishedAtAsc(array $posts): array
-    {
-        $compareByPublishedAt = static function($a, $b) {
-            return strcmp($a['publishedAt'], $b['publishedAt']);
-        };
-
-        usort($posts, $compareByPublishedAt);
+            return $dateB <=> $dateA;
+        });
 
         return $posts;
     }
 
     /**
+     * @param string $order
      * @return array
      * @throws JsonException
      */
-    public function getAllPosts(): array
+    public function getAllPosts(string $order): array
     {
         $dbPosts = $this->em->getRepository(Post::class)->findAll();
-        $apiPosts = $this->api->getByParameters([])['articles'];
+        $apiPosts = [];
         $adminUser = $this->em->getRepository(User::class)->findOneBy(['email' => 'admin@square1.com']);
 
-        foreach ($apiPosts as $key => $apiPost) {
-            $existingPost = $this->em->getRepository(Post::class)->findOneBy(['title' => $apiPost['title']]);
-            if ($existingPost) {
-                unset($apiPosts[$key]);
-            } else {
-                $newPost = new Post();
-                $newPost->setAuthor($adminUser);
-                $newPost->setTitle($apiPost['title']);
-                $newPost->setDescription($apiPost['description']);
-                $newPost->setPublicationDate(new \DateTime($apiPost['publishedAt']));
-
-                $this->em->persist($newPost);
+        if ($adminUser) {
+            $apiPostsResponse = $this->api->getByParameters([]);
+            if (!isset($apiPostsResponse['articles'])) {
+                throw new \Exception('API response error');
             }
-        }
+            $apiPosts = $apiPostsResponse['articles'];
+            $existingPostTitles = $this->getAllTitles();
+            foreach ($apiPosts as $key => $apiPost) {
+                if (in_array($apiPost['title'], $existingPostTitles, true)) {
+                    unset($apiPosts[$key]);
+                } else {
+                    $newPost = new Post();
+                    $newPost->setAuthor($adminUser);
+                    $newPost->setTitle($apiPost['title']);
+                    $newPost->setDescription($apiPost['description']);
+                    $newPost->setPublicationDate(new \DateTime($apiPost['publishedAt']));
 
-        $this->em->flush();
+                    $this->em->persist($newPost);
+                }
+            }
+
+            $this->em->flush();
+        }
 
         $posts = $this->combinePosts($apiPosts, $dbPosts);
 
-        return $this->sortByPublishedAtAsc($posts);
+        return $this->sortByPublishedAt($posts, $order);
     }
 
+    /**
+     * @return array
+     */
+    private function getAllTitles(): array
+    {
+        $dbPosts = $this->em->getRepository(Post::class)->findAll();
+        $titles = [];
+        foreach ($dbPosts as $post) {
+            $titles[] = $post->getTitle();
+        }
+        return $titles;
+    }
 
     /**
      * @param array $apiPosts
      * @param array $dbPosts
      * @return array
      */
-    private function combinePosts(array $apiPosts, array $dbPosts): array
+    public function combinePosts(array $apiPosts, array $dbPosts): array
     {
         $postsArray = [];
 
         foreach ($dbPosts as $post) {
             $postsArray[] = [
-                'id' => 'bd_' . $post->getId(),
+                'id' => $post->getId(),
                 'title' => $post->getTitle(),
                 'description' => $post->getDescription(),
                 'publishedAt' => $post->getPublicationDate()->format('Y-m-d H:i:s'),

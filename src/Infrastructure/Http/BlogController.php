@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class BlogController extends AbstractController
 {
@@ -33,12 +34,17 @@ class BlogController extends AbstractController
     }
 
     #[Route('/posts', name: 'posts', methods: ['GET'])]
-    public function getPosts(): Response
+    public function getPosts(Request $request, SessionInterface $session): Response
     {
-        $posts = $this->postsService->getAllPosts();
+        $order = $request->query->get('order', 'asc');
+
+        $posts = $this->postsService->getAllPosts($order);
+
+        $session->set('post_order', $order);
 
         return $this->render('posts/index.html.twig', [
             'posts' => $posts,
+            'order' => $order,
         ]);
     }
 
@@ -78,15 +84,12 @@ class BlogController extends AbstractController
     }
 
     #[Route('/posts/{id}', name: 'post_show', methods: ['GET'])]
-    public function getPost($id): Response
+    public function getPost(int $id): Response
     {
-        $posts = $this->postsService->getAllPosts();
-        $post = $this->postsService->getSpecificPost($posts, $id);
+        $post = $this->em->getRepository(Post::class)->find($id);
 
         if (!$post) {
-            return $this->render('posts/404.html.twig', [
-                'post' => $id,
-            ]);
+            return new Response(null, 404);
         }
 
         return $this->render('posts/show.html.twig', [
