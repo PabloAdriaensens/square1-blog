@@ -7,7 +7,6 @@ use App\Application\Service\PostsService;
 use App\Domain\Entity\Post;
 use App\Infrastructure\Form\PostFormType;
 use Doctrine\ORM\EntityManagerInterface;
-use JsonException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -79,7 +78,7 @@ class BlogController extends AbstractController
     }
 
     #[Route('/posts/{id}', name: 'post_show', methods: ['GET'])]
-    public function getPost(int $id): Response
+    public function getPost($id): Response
     {
         $posts = $this->postsService->getAllPosts();
         $post = $this->postsService->getSpecificPost($posts, $id);
