@@ -25,7 +25,7 @@ class PostsService
      * @return array
      * @throws Exception
      */
-    private function sortByPublishedAt(array $posts, string $order): array
+    protected function sortByPublishedAt(array $posts, string $order): array
     {
         if ($order !== 'asc' && $order !== 'desc') {
             throw new Exception('Invalid sort order: '.$order);
